@@ -1,31 +1,32 @@
-- hosts: localhost
-  become: yes
+---
+- hosts: webservers
+  gather_facts: false
   tasks:
-        - name: Build an image and push it to a private repo
-          community.docker.docker_image:
-              build:
-                  path: "/home/ansari/work"
-              name: docker.io/ansarikaleem/abctechnologies
-              #tag: test
-              push: true
-              source: build
-          register: out
-        - debug:
-              var: out  
-        - name: start a container
-          community.docker.docker_container:
-             name: abc-application
-             image: ansarikaleem/abctechnologies
-             state: started
-             ports:
-                 - 1234:8080
-             #restart: true
-          register: out
-        - debug:
-              var: out
-             #- name: Deploying to kubernetes
-        - name: Create a Deployment by reading the definition from a local file 
-          command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /home/ansari/work/deployment.yml"    
-          register: out
-        - debug:
-              var: out
+    - name: Docker login
+      docker_login:
+        username: ansarikaleem
+        password: ******
+
+    - name: Build an image and push it to a private repo
+      community.docker.docker_image:
+        build:
+          path: "/opt/docker"
+        name: docker.io/ansarikaleem/abctechnologies
+        push: true
+        source: build
+      register: out
+
+    - debug:
+        var: out
+
+    - name: Start a container
+      community.docker.docker_container:
+        name: abctechnologies
+        image: ansarikaleem/abctechnologies
+        state: started
+        ports:
+          - 8090:8080
+      register: out
+
+    - debug:
+        var: out
